@@ -55,12 +55,12 @@ def get_weather():
 # FIXTURES
 # --------------------------------------------------
 
-mens_fixtures = [     {         {     "home": "Manchester United",     "away": "Chelsea Women",     "date": "13 Sep 2026",     "time": "13:00",         "away": "Paris Saint-Germain",         "date": "08 Aug 2026",         "time": "17:00",= [
+mens_fixtures = [
     {
         "home": "Manchester United",
         "away": "Paris Saint-Germain",
         "date": "08 Aug 2026",
-        "time": "16:00",
+        "time": "17:00",
         "competition": "Club Friendly"
     },
     {
@@ -84,14 +84,14 @@ womens_fixtures = [
         "home": "London City",
         "away": "Manchester United Women",
         "date": "04 Sep 2026",
-        "time": "11:00",
+        "time": "12:00",
         "competition": "Women's Super League"
     },
     {
         "home": "Manchester United Women",
         "away": "Chelsea Women",
         "date": "13 Sep 2026",
-        "time": "12:00",
+        "time": "13:00",
         "competition": "Women's Super League"
     },
     {
