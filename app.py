@@ -51,26 +51,22 @@ with col1:
 
 with col2:
 
-    st.subheader("⚽ Manchester United")
+st.subheader("⚽ Manchester United Men")
 
-    fixtures = get_fixtures()
+fixtures = get_fixtures()
 
-    if fixtures:
+if fixtures:
 
-        fixture = fixtures[0]
+    fixture = fixtures[0]
 
-        st.write(
-            f"{fixture['strHomeTeam']} vs {fixture['strAwayTeam']}"
-        )
+    st.write(
+        f"{fixture['strHomeTeam']} vs {fixture['strAwayTeam']}"
+    )
 
-        st.write(
-            fixture['dateEvent']
-        )
+    st.write(
+        fixture['dateEvent']
+    )
 
-    else:
+else:
 
-        st.write(
-            "No fixture returned"
-        )
-
-st.success("✅ Weather + Football loaded")
+    st.write("No fixture returned")
