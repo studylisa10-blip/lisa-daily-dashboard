@@ -42,39 +42,29 @@ def current_uk_date():
     return datetime.now(UK_TIMEZONE).strftime("%A %d %B %Y")
 
 
-def convert_utc_to_uk(date_value, time_value):
+def get_weather():
 
     try:
 
-        if not date_value:
-            return "Date TBC", "Time TBC"
-
-        if not time_value:
-            return date_value, "Time TBC"
-
-        clean_time = str(time_value)[:5]
-
-        match_datetime = datetime.strptime(
-            f"{date_value} {clean_time}",
-            "%Y-%m-%d %H:%M"
+        response = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 50.817,
+                "longitude": -0.375,
+                "current": "temperature_2m"
+            },
+            timeout=20
         )
 
-        match_datetime = match_datetime.replace(
-            tzinfo=UTC_TIMEZONE
-        )
+        data = response.json()
 
-        uk_datetime = match_datetime.astimezone(
-            UK_TIMEZONE
-        )
+        return str(
+            data["current"]["temperature_2m"]
+        ) + "°C"
 
-        date_display = uk_datetime.strftime("%d %b %Y")
-        time_display = uk_datetime.strftime("%H:%M")
+    except Exception as e:
 
-        return date_display, time_display
-
-    except:
-
-        return date_value, str(time_value)[:5] if time_value else "Time TBC"
+        return str(e)
 
 
 def format_sportsdb_fixture(fixture):
