@@ -4,7 +4,7 @@ import feedparser
 from datetime import datetime
 
 # --------------------------------------------------
-# PAGE SETUP
+# PAGE
 # --------------------------------------------------
 
 st.set_page_config(
@@ -54,6 +54,7 @@ page = st.sidebar.radio(
         "Home",
         "Football",
         "News",
+        "AI News",
         "Learning"
     ]
 )
@@ -108,7 +109,7 @@ def get_mens_fixture():
         return None
 
 
-def get_headlines():
+def get_bbc_news():
 
     try:
 
@@ -122,13 +123,49 @@ def get_headlines():
 
         return []
 
+
+def get_football_news():
+
+    try:
+
+        feed = feedparser.parse(
+            "https://feeds.bbci.co.uk/sport/football/rss.xml"
+        )
+
+        return feed.entries[:10]
+
+    except:
+
+        return []
+
+
+def get_ai_news():
+
+    try:
+
+        feed = feedparser.parse(
+            "https://www.artificialintelligence-news.com/feed/"
+        )
+
+        return feed.entries[:10]
+
+    except:
+
+        return []
+
 # --------------------------------------------------
 # LOAD DATA
 # --------------------------------------------------
 
 weather = get_weather()
+
 mens_fixture = get_mens_fixture()
-headlines = get_headlines()
+
+bbc_news = get_bbc_news()
+
+football_news = get_football_news()
+
+ai_news = get_ai_news()
 
 # --------------------------------------------------
 # HOME
@@ -148,9 +185,8 @@ if page == "Home":
 
         st.markdown(f"""
         <div class="card">
-        <h3>🌦 Weather</h3>
+        <h3>🌦 Worthing Weather</h3>
         <h1>{weather}°C</h1>
-        <p>Worthing</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -158,33 +194,19 @@ if page == "Home":
 
         if mens_fixture:
 
-            fixture_text = (
-                f"{mens_fixture['strHomeTeam']} vs "
-                f"{mens_fixture['strAwayTeam']}"
-            )
-
             st.markdown(f"""
             <div class="card">
             <h3>⚽ Manchester United Men</h3>
 
             <b>
-            {fixture_text}
+            {mens_fixture['strHomeTeam']}
+            vs
+            {mens_fixture['strAwayTeam']}
             </b>
 
             <br><br>
 
             {mens_fixture['dateEvent']}
-            </div>
-            """, unsafe_allow_html=True)
-
-        else:
-
-            fixture_text = "No fixture available"
-
-            st.markdown("""
-            <div class="card">
-            <h3>⚽ Manchester United Men</h3>
-            No fixture available
             </div>
             """, unsafe_allow_html=True)
 
@@ -196,13 +218,9 @@ if page == "Home":
         f"""
 Good morning Lisa.
 
-Current temperature in Worthing: {weather}°C
+Worthing temperature: {weather}°C.
 
-Next Manchester United fixture:
-
-{fixture_text}
-
-See the News page for today's BBC headlines.
+Check Football News and AI News for today's updates.
 """
     )
 
@@ -212,27 +230,15 @@ See the News page for today's BBC headlines.
 
 elif page == "Football":
 
-    st.title("⚽ Football")
+    st.title("⚽ Football News")
 
-    if mens_fixture:
+    for article in football_news:
 
-        st.write(
-            f"### {mens_fixture['strHomeTeam']} vs {mens_fixture['strAwayTeam']}"
-        )
-
-        st.write(
-            f"Date: {mens_fixture['dateEvent']}"
-        )
-
-    else:
-
-        st.warning(
-            "No fixture found"
-        )
-
-    st.info(
-        "Next upgrade: Manchester United Women fixtures"
-    )
+        st.markdown(f"""
+        <div class="news">
+        <b>{article.title}</b>
+        </div>
+        """, unsafe_allow_html=True)
 
 # --------------------------------------------------
 # NEWS PAGE
@@ -242,7 +248,7 @@ elif page == "News":
 
     st.title("📰 BBC Headlines")
 
-    for article in headlines:
+    for article in bbc_news:
 
         st.markdown(f"""
         <div class="news">
@@ -251,7 +257,23 @@ elif page == "News":
         """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# LEARNING PAGE
+# AI NEWS PAGE
+# --------------------------------------------------
+
+elif page == "AI News":
+
+    st.title("🤖 AI News")
+
+    for article in ai_news:
+
+        st.markdown(f"""
+        <div class="news">
+        <b>{article.title}</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --------------------------------------------------
+# LEARNING
 # --------------------------------------------------
 
 elif page == "Learning":
@@ -265,10 +287,4 @@ elif page == "Learning":
     st.write("• Databricks")
     st.write("• SQL")
 
-# --------------------------------------------------
-# FOOTER
-# --------------------------------------------------
-
-st.sidebar.success(
-    "✅ Dashboard Live"
-)
+st.sidebar.success("✅ Dashboard Live")
