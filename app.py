@@ -1,6 +1,11 @@
 import streamlit as st
 import requests
 
+try:
+    from google import genai
+except:
+    genai = None
+
 st.set_page_config(
     page_title="Lisa's Daily Pulse",
     page_icon="🚀",
@@ -24,9 +29,8 @@ def get_weather():
 
     return data["current"]["temperature_2m"]
 
-
 # --------------------------
-# MAN UNITED MEN FIXTURES
+# FOOTBALL
 # --------------------------
 
 def get_mens_fixture():
@@ -37,11 +41,56 @@ def get_mens_fixture():
 
     fixtures = data.get("events", [])
 
-    if len(fixtures) > 0:
+    if fixtures:
         return fixtures[0]
 
     return None
 
+# --------------------------
+# GEMINI
+# --------------------------
+
+def get_briefing(temp, fixture):
+
+    if genai is None:
+        return "Gemini package not installed."
+
+    api_key = st.secrets.get("GEMINI_API_KEY")
+
+    if not api_key:
+        return "Add your GEMINI_API_KEY in Streamlit Secrets."
+
+    try:
+
+        client = genai.Client(api_key=api_key)
+
+        prompt = f"""
+
+        You are Lisa's personal morning assistant.
+
+        Current weather:
+        {temp}°C in Worthing
+
+        Next Manchester United fixture:
+        {fixture}
+
+        Write a short friendly morning briefing.
+        Mention the weather.
+        Mention the football.
+        End with one motivational sentence.
+
+        """
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        return response.text
+
+    except Exception as e:
+
+        return f"Gemini error: {e}"
 
 # --------------------------
 # PAGE
@@ -51,49 +100,44 @@ st.title("🚀 Lisa's Daily Pulse")
 
 col1, col2 = st.columns(2)
 
-# WEATHER
+temp = get_weather()
+
+fixture = get_mens_fixture()
 
 with col1:
-
-    temp = get_weather()
 
     st.metric(
         label="🌦 Worthing Temperature",
         value=f"{temp} °C"
     )
 
-# FOOTBALL
-
 with col2:
 
     st.subheader("⚽ Manchester United Men")
 
-    fixture = get_mens_fixture()
-
     if fixture:
 
-        st.write(
-            f"**{fixture['strHomeTeam']} vs {fixture['strAwayTeam']}**"
+        fixture_text = (
+            f"{fixture['strHomeTeam']} vs "
+            f"{fixture['strAwayTeam']} "
+            f"({fixture['dateEvent']})"
         )
 
-        st.write(
-            fixture["dateEvent"]
-        )
+        st.write(fixture_text)
 
     else:
 
-        st.write(
-            "No fixture returned"
-        )
+        fixture_text = "Fixture unavailable"
+
+        st.write(fixture_text)
 
 st.divider()
 
-st.subheader("🤖 Gemini")
+st.subheader("🤖 Morning AI Briefing")
 
-st.info(
-    "Next step: connect your Gemini API key and generate a personalised morning briefing."
+briefing = get_briefing(
+    temp,
+    fixture_text
 )
 
-st.success(
-    "✅ Weather working | ✅ Football working"
-)
+st.write(briefing)
