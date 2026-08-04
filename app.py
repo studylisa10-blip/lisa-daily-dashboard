@@ -4,7 +4,7 @@ import feedparser
 from datetime import datetime
 
 # --------------------------------------------------
-# PAGE
+# PAGE SETUP
 # --------------------------------------------------
 
 st.set_page_config(
@@ -29,6 +29,7 @@ st.markdown("""
     padding: 20px;
     border-radius: 15px;
     border: 1px solid #334155;
+    margin-bottom: 15px;
 }
 
 .news {
@@ -42,7 +43,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# WEATHER
+# SIDEBAR
+# --------------------------------------------------
+
+st.sidebar.title("🚀 Lisa's Daily Pulse")
+
+page = st.sidebar.radio(
+    "Navigation",
+    [
+        "Home",
+        "Football",
+        "News",
+        "Learning"
+    ]
+)
+
+# --------------------------------------------------
+# FUNCTIONS
 # --------------------------------------------------
 
 def get_weather():
@@ -68,9 +85,6 @@ def get_weather():
     except:
         return "N/A"
 
-# --------------------------------------------------
-# MEN
-# --------------------------------------------------
 
 def get_mens_fixture():
 
@@ -93,17 +107,6 @@ def get_mens_fixture():
     except:
         return None
 
-# --------------------------------------------------
-# WOMEN
-# --------------------------------------------------
-
-def get_womens_fixture():
-
-    return None
-
-# --------------------------------------------------
-# NEWS
-# --------------------------------------------------
 
 def get_headlines():
 
@@ -124,114 +127,148 @@ def get_headlines():
 # --------------------------------------------------
 
 weather = get_weather()
-
 mens_fixture = get_mens_fixture()
-
 headlines = get_headlines()
 
 # --------------------------------------------------
-# HEADER
+# HOME
 # --------------------------------------------------
 
-st.title("🚀 Lisa's Daily Pulse")
+if page == "Home":
 
-st.caption(
-    datetime.now().strftime("%A %d %B %Y")
-)
+    st.title("🚀 Lisa's Daily Pulse")
 
-# --------------------------------------------------
-# CARDS
-# --------------------------------------------------
+    st.caption(
+        datetime.now().strftime("%A %d %B %Y")
+    )
 
-col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
-with col1:
-
-    st.markdown(f"""
-    <div class="card">
-    <h3>🌦 Weather</h3>
-    <h1>{weather}°C</h1>
-    <p>Worthing</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-
-    if mens_fixture:
+    with col1:
 
         st.markdown(f"""
         <div class="card">
-        <h3>⚽ Man United Men</h3>
-
-        <b>
-        {mens_fixture['strHomeTeam']}
-        vs
-        {mens_fixture['strAwayTeam']}
-        </b>
-
-        <br><br>
-
-        {mens_fixture['dateEvent']}
+        <h3>🌦 Weather</h3>
+        <h1>{weather}°C</h1>
+        <p>Worthing</p>
         </div>
         """, unsafe_allow_html=True)
+
+    with col2:
+
+        if mens_fixture:
+
+            fixture_text = (
+                f"{mens_fixture['strHomeTeam']} vs "
+                f"{mens_fixture['strAwayTeam']}"
+            )
+
+            st.markdown(f"""
+            <div class="card">
+            <h3>⚽ Manchester United Men</h3>
+
+            <b>
+            {fixture_text}
+            </b>
+
+            <br><br>
+
+            {mens_fixture['dateEvent']}
+            </div>
+            """, unsafe_allow_html=True)
+
+        else:
+
+            fixture_text = "No fixture available"
+
+            st.markdown("""
+            <div class="card">
+            <h3>⚽ Manchester United Men</h3>
+            No fixture available
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.divider()
+
+    st.subheader("☕ Morning Briefing")
+
+    st.info(
+        f"""
+Good morning Lisa.
+
+Current temperature in Worthing: {weather}°C
+
+Next Manchester United fixture:
+
+{fixture_text}
+
+See the News page for today's BBC headlines.
+"""
+    )
+
+# --------------------------------------------------
+# FOOTBALL PAGE
+# --------------------------------------------------
+
+elif page == "Football":
+
+    st.title("⚽ Football")
+
+    if mens_fixture:
+
+        st.write(
+            f"### {mens_fixture['strHomeTeam']} vs {mens_fixture['strAwayTeam']}"
+        )
+
+        st.write(
+            f"Date: {mens_fixture['dateEvent']}"
+        )
 
     else:
 
-        st.markdown("""
-        <div class="card">
-        <h3>⚽ Man United Men</h3>
-        No fixture available
+        st.warning(
+            "No fixture found"
+        )
+
+    st.info(
+        "Next upgrade: Manchester United Women fixtures"
+    )
+
+# --------------------------------------------------
+# NEWS PAGE
+# --------------------------------------------------
+
+elif page == "News":
+
+    st.title("📰 BBC Headlines")
+
+    for article in headlines:
+
+        st.markdown(f"""
+        <div class="news">
+        <b>{article.title}</b>
         </div>
         """, unsafe_allow_html=True)
 
-with col3:
-
-    st.markdown("""
-    <div class="card">
-    <h3>⚽ Man United Women</h3>
-    Coming next update 👌
-    </div>
-    """, unsafe_allow_html=True)
-
 # --------------------------------------------------
-# BRIEFING
+# LEARNING PAGE
 # --------------------------------------------------
 
-st.divider()
+elif page == "Learning":
 
-st.subheader("☕ Morning Briefing")
+    st.title("📚 Learning")
 
-st.info(
-    f"""
-Good morning Lisa.
-
-Current temperature:
-{weather}°C
-
-BBC Headlines are listed below.
-"""
-)
-
-# --------------------------------------------------
-# NEWS
-# --------------------------------------------------
-
-st.divider()
-
-st.subheader("📰 BBC Headlines")
-
-for article in headlines:
-
-    st.markdown(f"""
-    <div class="news">
-    <b>{article.title}</b>
-    </div>
-    """, unsafe_allow_html=True)
+    st.write("• Streamlit")
+    st.write("• Python")
+    st.write("• AI")
+    st.write("• Power BI")
+    st.write("• Databricks")
+    st.write("• SQL")
 
 # --------------------------------------------------
 # FOOTER
 # --------------------------------------------------
 
-st.success(
-    "✅ Weather | ✅ Men's Fixtures | ✅ BBC Headlines"
+st.sidebar.success(
+    "✅ Dashboard Live"
 )
