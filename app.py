@@ -141,34 +141,30 @@ def get_weather():
 
     try:
 
-        url = "https://api.open-meteo.com/v1/forecast"
-
-        params = {
-            "latitude": 50.817,
-            "longitude": -0.375,
-            "current": "temperature_2m",
-            "timezone": "Europe/London"
-        }
-
         response = requests.get(
-            url,
-            params=params,
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 50.817,
+                "longitude": -0.375,
+                "current": "temperature_2m",
+                "timezone": "Europe/London"
+            },
             timeout=10
         )
 
         data = response.json()
 
         current = data.get("current", {})
+
         temp = current.get("temperature_2m")
 
         if temp is not None:
-            return f"{temp}°C"
-
-        return "N/A"
+            return f"{round(float(temp), 1)}°C"
 
     except:
+        pass
 
-        return "N/A"
+    return "Unavailable"
 
 
 # --------------------------------------------------
@@ -352,13 +348,12 @@ next_womens_fixture = womens_fixtures[0] if womens_fixtures else None
 
 def show_fixture_card(title, fixture):
 
+    st.subheader(title)
+
     if not fixture:
 
-        st.subheader(title)
         st.warning("No fixture available")
         return
-
-    st.subheader(title)
 
     st.write(
         f"{fixture['home']} vs {fixture['away']}"
@@ -421,9 +416,11 @@ if page == "Home":
 
     with col1:
 
+        st.subheader("🌦 Worthing Weather")
+
         st.metric(
-            "🌦 Worthing Weather",
-            weather
+            label="Current Temperature",
+            value=weather
         )
 
     with col2:
@@ -468,7 +465,7 @@ if page == "Home":
         f"""
 Good morning Lisa.
 
-Current temperature in Worthing:
+Current temperature:
 {weather}
 
 Next Manchester United men's fixture:
@@ -477,7 +474,7 @@ Next Manchester United men's fixture:
 Next Manchester United women's fixture:
 {women_text}
 
-Check the News page for today's BBC headlines.
+Check today's headlines on the News page.
 """
     )
 
