@@ -197,25 +197,33 @@ if page == "Home":
 
     col1, col2, col3 = st.columns(3)
 
-    with col1:
+with col1:
 
-        st.metric(
-            "🌦 Worthing Weather",
-            weather
-        )
+    st.metric(
+        "🌦 Worthing",
+        weather
+    )
 
-    with col2:
+with col2:
 
-        show_fixture_card(
-            "⚽ Manchester United Men",
-            next_mens_fixture
-        )
+    st.metric(
+        "🌦 Salisbury",
+        "22°C"
+    )
 
-    with col3:
+with col3:
 
-        show_fixture_card(
-            "⚽ Manchester United Women",
-            next_womens_fixture
+    show_fixture_card(
+        "⚽ Manchester United Men",
+        next_mens_fixture
+    )
+
+with col4:
+
+    show_fixture_card(
+        "⚽ Manchester United Women",
+        next_womens_fixture
+    )
         )
 
     st.divider()
