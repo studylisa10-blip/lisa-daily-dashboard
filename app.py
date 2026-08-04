@@ -55,7 +55,7 @@ def get_weather():
 # FIXTURES
 # --------------------------------------------------
 
-mens_fixtures = [     {         "home": "Manchester United",         "away": "Paris Saint-Germain",         "date": "08 Aug 2026",         "time": "17:00",= [
+mens_fixtures = [     {         {     "home": "Manchester United",     "away": "Chelsea Women",     "date": "13 Sep 2026",     "time": "13:00",         "away": "Paris Saint-Germain",         "date": "08 Aug 2026",         "time": "17:00",= [
     {
         "home": "Manchester United",
         "away": "Paris Saint-Germain",
