@@ -26,17 +26,30 @@ st.markdown("""
 
 .card {
     background-color: #1e293b;
-    padding: 20px;
-    border-radius: 15px;
+    padding: 22px;
+    border-radius: 16px;
     border: 1px solid #334155;
     margin-bottom: 15px;
+    min-height: 210px;
 }
 
 .news {
     background-color: #111827;
-    padding: 12px;
+    padding: 14px;
     border-radius: 10px;
     margin-bottom: 10px;
+    border-left: 5px solid #38bdf8;
+}
+
+.small_text {
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.big_metric {
+    font-size: 42px;
+    font-weight: 800;
+    color: white;
 }
 
 </style>
@@ -59,6 +72,47 @@ page = st.sidebar.radio(
 )
 
 # --------------------------------------------------
+# HELPERS
+# --------------------------------------------------
+
+def clean_time(time_value):
+
+    if not time_value:
+        return "TBC"
+
+    time_value = str(time_value)
+
+    if len(time_value) >= 5:
+        return time_value[:5]
+
+    return time_value
+
+
+def fixture_title(fixture):
+
+    if not fixture:
+        return "No fixture available"
+
+    return f"{fixture.get('strHomeTeam', 'TBC')} vs {fixture.get('strAwayTeam', 'TBC')}"
+
+
+def fixture_date(fixture):
+
+    if not fixture:
+        return "Date TBC"
+
+    return fixture.get("dateEvent") or "Date TBC"
+
+
+def fixture_time(fixture):
+
+    if not fixture:
+        return "Time TBC"
+
+    return clean_time(fixture.get("strTime"))
+
+
+# --------------------------------------------------
 # WEATHER
 # --------------------------------------------------
 
@@ -66,327 +120,55 @@ def get_weather():
 
     try:
 
-        url = (
-            "https://api.open-meteo.com/v1/forecast"
-            "?latitude=50.817"
-            "&longitude=-0.375"
-            "&current_weather=true"
-        )
+        url = "https://api.open-meteo.com/v1/forecast"
 
-        data = requests.get(
+        params = {
+            "latitude": 50.817,
+            "longitude": -0.375,
+            "current": "temperature_2m",
+            "timezone": "Europe/London"
+        }
+
+        response = requests.get(
             url,
+            params=params,
             timeout=10
-        ).json()
+        )
 
-        return data["current_weather"]["temperature"]
+        data = response.json()
+
+        current = data.get("current", {})
+
+        temp = current.get("temperature_2m")
+
+        if temp is not None:
+            return temp
 
     except:
-
-        return "N/A"
-
-# --------------------------------------------------
-# MEN FIXTURE
-# --------------------------------------------------
-
-def get_mens_fixture():
+        pass
 
     try:
 
-        url = (
-            "https://www.thesportsdb.com/api/v1/json/123/"
-            "eventsnext.php?id=133612"
-        )
+        fallback_url = "https://api.open-meteo.com/v1/forecast"
 
-        data = requests.get(
-            url,
+        fallback_params = {
+            "latitude": 50.817,
+            "longitude": -0.375,
+            "current_weather": "true",
+            "timezone": "Europe/London"
+        }
+
+        fallback_response = requests.get(
+            fallback_url,
+            params=fallback_params,
             timeout=10
-        ).json()
-
-        fixtures = data.get("events", [])
-
-        if fixtures:
-            return fixtures[0]
-
-        return None
-
-    except:
-
-        return None
-
-# --------------------------------------------------
-# WOMEN FIXTURE
-# --------------------------------------------------
-
-def get_womens_fixture():
-
-    try:
-
-        search_url = (
-            "https://www.thesportsdb.com/api/v1/json/123/"
-            "searchteams.php?t=Manchester%20United%20Women"
         )
 
-        search_data = requests.get(
-            search_url,
-            timeout=10
-        ).json()
+        fallback_data = fallback_response.json()
 
-        teams = search_data.get("teams", [])
+        current_weather = fallback_data.get("current_weather", {})
 
-        if not teams:
-            return None
+        temp = current_weather.get("temperature")
 
-        team_id = teams[0]["idTeam"]
-
-        fixture_url = (
-            f"https://www.thesportsdb.com/api/v1/json/123/"
-            f"eventsnext.php?id={team_id}"
-        )
-
-        fixture_data = requests.get(
-            fixture_url,
-            timeout=10
-        ).json()
-
-        fixtures = fixture_data.get("events", [])
-
-        if fixtures:
-            return fixtures[0]
-
-        return None
-
-    except:
-
-        return None
-
-# --------------------------------------------------
-# BBC NEWS
-# --------------------------------------------------
-
-def get_headlines():
-
-    try:
-
-        feed = feedparser.parse(
-            "https://feeds.bbci.co.uk/news/rss.xml"
-        )
-
-        return feed.entries[:5]
-
-    except:
-
-        return []
-
-# --------------------------------------------------
-# LOAD DATA
-# --------------------------------------------------
-
-weather = get_weather()
-
-mens_fixture = get_mens_fixture()
-
-womens_fixture = get_womens_fixture()
-
-headlines = get_headlines()
-
-# --------------------------------------------------
-# HOME
-# --------------------------------------------------
-
-if page == "Home":
-
-    st.title("🚀 Lisa's Daily Pulse")
-
-    st.caption(
-        datetime.now().strftime("%A %d %B %Y")
-    )
-
-    col1, col2, col3 = st.columns(3)
-
-    # WEATHER
-
-    with col1:
-
-        st.markdown(f"""
-        <div class="card">
-        <h3>🌦 Weather</h3>
-        <h1>{weather}°C</h1>
-        <p>Worthing</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # MEN
-
-    with col2:
-
-        if mens_fixture:
-
-            st.markdown(f"""
-            <div class="card">
-
-            <h3>⚽ Manchester United Men</h3>
-
-            <b>
-            {mens_fixture['strHomeTeam']}
-            vs
-            {mens_fixture['strAwayTeam']}
-            </b>
-
-            <br><br>
-
-            📅 {mens_fixture['dateEvent']}
-
-            <br><br>
-
-            🕒 {mens_fixture.get('strTime','TBC')}
-
-            </div>
-            """, unsafe_allow_html=True)
-
-        else:
-
-            st.markdown("""
-            <div class="card">
-            <h3>⚽ Manchester United Men</h3>
-            No fixture available
-            </div>
-            """, unsafe_allow_html=True)
-
-    # WOMEN
-
-    with col3:
-
-        if womens_fixture:
-
-            st.markdown(f"""
-            <div class="card">
-
-            <h3>⚽ Manchester United Women</h3>
-
-            <b>
-            {womens_fixture['strHomeTeam']}
-            vs
-            {womens_fixture['strAwayTeam']}
-            </b>
-
-            <br><br>
-
-            📅 {womens_fixture['dateEvent']}
-
-            <br><br>
-
-            🕒 {womens_fixture.get('strTime','TBC')}
-
-            </div>
-            """, unsafe_allow_html=True)
-
-        else:
-
-            st.markdown("""
-            <div class="card">
-            <h3>⚽ Manchester United Women</h3>
-            No upcoming fixture returned
-            </div>
-            """, unsafe_allow_html=True)
-
-    st.divider()
-
-    st.subheader("☕ Morning Briefing")
-
-    st.info(
-        f"""
-Good morning Lisa.
-
-Current temperature in Worthing: {weather}°C
-
-Check the Football page for fixtures.
-
-Check the News page for today's BBC headlines.
-"""
-    )
-
-# --------------------------------------------------
-# FOOTBALL PAGE
-# --------------------------------------------------
-
-elif page == "Football":
-
-    st.title("⚽ Football")
-
-    st.subheader("Manchester United Men")
-
-    if mens_fixture:
-
-        st.write(
-            f"{mens_fixture['strHomeTeam']} vs {mens_fixture['strAwayTeam']}"
-        )
-
-        st.write(
-            f"📅 {mens_fixture['dateEvent']}"
-        )
-
-        st.write(
-            f"🕒 {mens_fixture.get('strTime','TBC')}"
-        )
-
-    st.divider()
-
-    st.subheader("Manchester United Women")
-
-    if womens_fixture:
-
-        st.write(
-            f"{womens_fixture['strHomeTeam']} vs {womens_fixture['strAwayTeam']}"
-        )
-
-        st.write(
-            f"📅 {womens_fixture['dateEvent']}"
-        )
-
-        st.write(
-            f"🕒 {womens_fixture.get('strTime','TBC')}"
-        )
-
-    else:
-
-        st.write("No fixture returned")
-
-# --------------------------------------------------
-# NEWS
-# --------------------------------------------------
-
-elif page == "News":
-
-    st.title("📰 BBC Headlines")
-
-    for article in headlines:
-
-        st.markdown(
-            f"""
-            <div class="news">
-            <b>{article.title}</b>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# --------------------------------------------------
-# LEARNING
-# --------------------------------------------------
-
-elif page == "Learning":
-
-    st.title("📚 Learning")
-
-    st.write("• Streamlit")
-    st.write("• Python")
-    st.write("• AI")
-    st.write("• Power BI")
-    st.write("• Databricks")
-    st.write("• SQL")
-
-# --------------------------------------------------
-# STATUS
-# --------------------------------------------------
-
-st.sidebar.success("✅ Dashboard Live")
+        if temp is not None:
+  
