@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+import random
 
 st.set_page_config(
     page_title="Lisa's Daily Pulse",
@@ -7,43 +8,38 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------- CUSTOM CSS ----------
+# ---------- STYLING ----------
 
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0f172a;
-}
-
 .stApp {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: white;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
 }
 
 .hero {
-    background: linear-gradient(135deg, #18A0FB, #7B61FF);
-    padding: 30px;
+    background: linear-gradient(135deg,#18A0FB,#7B61FF);
+    padding: 35px;
     border-radius: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .card {
-    background-color: #1e293b;
+    background: #1e293b;
     padding: 20px;
     border-radius: 15px;
     border: 1px solid #334155;
-    height: 220px;
-}
-
-h1, h2, h3 {
-    color: white;
+    margin-bottom: 20px;
 }
 
 .metric {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
     color: #38BDF8;
+}
+
+.small {
+    color: #94A3B8;
 }
 
 </style>
@@ -52,8 +48,6 @@ h1, h2, h3 {
 # ---------- SIDEBAR ----------
 
 st.sidebar.title("🚀 Lisa's Daily Pulse")
-
-st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Navigation",
@@ -70,11 +64,19 @@ page = st.sidebar.radio(
 
 if page == "Home":
 
+    quotes = [
+        "Small improvements every day lead to massive results.",
+        "Today's progress is tomorrow's success.",
+        "Done is better than perfect.",
+        "Focus on progress, not perfection.",
+        "The best project you'll ever build is yourself."
+    ]
+
     st.markdown(f"""
-    <div class="hero">
+    <div class='hero'>
         <h1>☕ Good Morning Lisa</h1>
-        <p>{datetime.now().strftime("%A %d %B %Y")}</p>
-        <p>Your personal daily briefing and command centre.</p>
+        <h4>{datetime.now().strftime('%A %d %B %Y')}</h4>
+        <p>Welcome to your personal daily briefing.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -82,48 +84,50 @@ if page == "Home":
 
     with col1:
         st.markdown("""
-        <div class="card">
-            <h3>⚽ Next Men's Match</h3>
-            <p>Manchester United</p>
-            <div class="metric">TBC</div>
-            <p>Live fixtures coming soon</p>
+        <div class='card'>
+        <h3>⚽ Football</h3>
+        <div class='metric'>MUFC</div>
+        <p>Check latest fixtures and news.</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
         st.markdown("""
-        <div class="card">
-            <h3>⚽ Next Women's Match</h3>
-            <p>Manchester United Women</p>
-            <div class="metric">TBC</div>
-            <p>Live fixtures coming soon</p>
+        <div class='card'>
+        <h3>🌦 Weather</h3>
+        <div class='metric'>Worthing</div>
+        <p>Ready for live weather feeds.</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col3:
         st.markdown("""
-        <div class="card">
-            <h3>🌦 Weather</h3>
-            <p>Worthing</p>
-            <div class="metric">--°C</div>
-            <p>Live forecast coming soon</p>
+        <div class='card'>
+        <h3>📰 News</h3>
+        <div class='metric'>Daily</div>
+        <p>Personalised briefings.</p>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("### 🤖 Daily AI Briefing")
+    st.subheader("🤖 Daily Briefing")
 
-    st.info("""
-    Welcome back Lisa.
+    st.info(
+        f"""
+        Good morning Lisa.
 
-    This dashboard will eventually give you:
-    • Football fixtures
-    • Personalised news
-    • Weather
-    • AI summaries
-    • Learning recommendations
+        Your dashboard is now live ✅
 
-    Your very own daily newspaper.
-    """)
+        Next steps:
+        • Add live football fixtures
+        • Add live weather
+        • Add real news feeds
+        • Connect Gemini AI
+
+        💡 Quote of the Day:
+
+        "{random.choice(quotes)}"
+        """
+    )
 
 # ---------- FOOTBALL ----------
 
@@ -131,15 +135,32 @@ elif page == "Football":
 
     st.title("⚽ Football Hub")
 
-    col1, col2 = st.columns(2)
+    st.metric(
+        label="Favourite Club",
+        value="Manchester United"
+    )
 
-    with col1:
-        st.subheader("Manchester United Men")
-        st.write("Fixtures, results and league table coming soon.")
+    st.markdown("---")
 
-    with col2:
-        st.subheader("Manchester United Women")
-        st.write("Fixtures, results and league table coming soon.")
+    st.subheader("Men's Team")
+
+    st.write("""
+    • Latest fixtures
+    • Results
+    • League table
+    • Transfer news
+    """)
+
+    st.markdown("---")
+
+    st.subheader("Women's Team")
+
+    st.write("""
+    • Latest fixtures
+    • Results
+    • League table
+    • Women's football news
+    """)
 
 # ---------- NEWS ----------
 
@@ -147,12 +168,45 @@ elif page == "News":
 
     st.title("📰 News Centre")
 
-    st.subheader("Top Stories")
+    col1, col2 = st.columns(2)
 
-    st.write("• UK News")
-    st.write("• World News")
-    st.write("• Technology News")
-    st.write("• AI News")
+    with col1:
+
+        st.markdown("""
+        ### 🇬🇧 UK News
+
+        • Headline 1
+
+        • Headline 2
+
+        • Headline 3
+        """)
+
+    with col2:
+
+        st.markdown("""
+        ### 🌍 World News
+
+        • Headline 1
+
+        • Headline 2
+
+        • Headline 3
+        """)
+
+    st.markdown("---")
+
+    st.markdown("""
+    ### 🤖 AI & Technology
+
+    • OpenAI
+
+    • Google Gemini
+
+    • Microsoft AI
+
+    • Databricks
+    """)
 
 # ---------- LEARNING ----------
 
@@ -160,10 +214,33 @@ elif page == "Learning":
 
     st.title("📚 Learning Centre")
 
-    st.write("Power BI")
-    st.write("Databricks")
-    st.write("Python")
-    st.write("Artificial Intelligence")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        ### Data
+
+        • SQL
+
+        • Power BI
+
+        • Databricks
+
+        • Python
+        """)
+
+    with col2:
+        st.markdown("""
+        ### AI
+
+        • Gemini
+
+        • ChatGPT
+
+        • Prompt Engineering
+
+        • Automation
+        """)
 
 # ---------- GOALS ----------
 
@@ -171,7 +248,13 @@ elif page == "Goals":
 
     st.title("🎯 Personal Goals")
 
-    st.write("Books")
-    st.write("Travel plans")
-    st.write("Projects")
-    st.write("Learning targets")
+    st.checkbox("Learn Streamlit")
+    st.checkbox("Build AI Dashboard")
+    st.checkbox("Learn Gemini API")
+    st.checkbox("Deploy Personal Website")
+
+    st.progress(25)
+
+    st.success(
+        "You've already completed the hardest step: deploying your first app 🚀"
+    )
