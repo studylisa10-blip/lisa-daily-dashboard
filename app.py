@@ -3,6 +3,60 @@ import requests
 import feedparser
 
 st.set_page_config(
+    st.markdown("""
+<style>
+
+.stApp {
+    background: linear-gradient(135deg, #0b1120, #111827);
+}
+
+.big-title {
+    font-size: 52px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0px;
+}
+
+.sub-title {
+    color: #94A3B8;
+    font-size: 18px;
+}
+
+.card {
+    background: linear-gradient(
+        135deg,
+        rgba(30,41,59,0.95),
+        rgba(15,23,42,0.95)
+    );
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid #334155;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    color: #38BDF8;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.card-value {
+    color: white;
+    font-size: 34px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.news-card {
+    background: #111827;
+    padding: 15px;
+    border-radius: 12px;
+    border-left: 5px solid #38BDF8;
+    margin-bottom: 12px;
+}
+
+</style>
+""", unsafe_allow_html=True)
     page_title="Lisa's Daily Pulse",
     page_icon="🚀",
     layout="wide"
