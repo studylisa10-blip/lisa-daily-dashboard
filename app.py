@@ -7,7 +7,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Weather
+# --------------------------
+# WEATHER
+# --------------------------
 
 def get_weather():
 
@@ -23,50 +25,75 @@ def get_weather():
     return data["current"]["temperature_2m"]
 
 
-# Manchester United Fixtures
+# --------------------------
+# MAN UNITED MEN FIXTURES
+# --------------------------
 
-def get_fixtures():
+def get_mens_fixture():
 
     url = "https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133612"
 
     data = requests.get(url).json()
 
-    return data.get("events", [])
+    fixtures = data.get("events", [])
+
+    if len(fixtures) > 0:
+        return fixtures[0]
+
+    return None
 
 
+# --------------------------
 # PAGE
+# --------------------------
 
 st.title("🚀 Lisa's Daily Pulse")
 
 col1, col2 = st.columns(2)
+
+# WEATHER
 
 with col1:
 
     temp = get_weather()
 
     st.metric(
-        "Worthing Temperature",
-        f"{temp} °C"
+        label="🌦 Worthing Temperature",
+        value=f"{temp} °C"
     )
+
+# FOOTBALL
 
 with col2:
 
-st.subheader("⚽ Manchester United Men")
+    st.subheader("⚽ Manchester United Men")
 
-fixtures = get_fixtures()
+    fixture = get_mens_fixture()
 
-if fixtures:
+    if fixture:
 
-    fixture = fixtures[0]
+        st.write(
+            f"**{fixture['strHomeTeam']} vs {fixture['strAwayTeam']}**"
+        )
 
-    st.write(
-        f"{fixture['strHomeTeam']} vs {fixture['strAwayTeam']}"
-    )
+        st.write(
+            fixture["dateEvent"]
+        )
 
-    st.write(
-        fixture['dateEvent']
-    )
+    else:
 
-else:
+        st.write(
+            "No fixture returned"
+        )
 
-    st.write("No fixture returned")
+st.divider()
+
+st.subheader("🤖 Gemini")
+
+st.info(
+    "Next step: connect your Gemini API key and generate a personalised morning briefing."
+)
+
+st.success(
+    "✅ Weather working | ✅ Football working"
+)
