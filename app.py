@@ -1,21 +1,17 @@
-impo** stream**t as st
+import streamlit as st
 
-st.set**age_config(page_title="**sa's Daily Dashboard")
+st.set_page_config(page_title="Lisa's Daily Dashboard")
 
-st.title**☕ Lisa's Daily Dashboard")
+st.title("☕ Lisa's Daily Dashboard")
 
-st.he**er**⚽ Football")
+st.header("⚽ Football")
+st.write("Manchester United fixtures will go here")
 
-st.write**Manchester United fixtures will g**here")
+st.header("📰 News")
+st.write("Personalised news will go here")
 
-st.header**📰 News")
+st.header("⚡ Smart Metering")
+st.write("Industry updates will go here")
 
-st.write("Personalised**ews will go here")
-
-st.header**⚡ Smart Metering")
-
-st.write("Ind**try updates will go here")
-
-st.he**er("📚 Learning")
-
-st.write**Databricks,**QL and Power BI updates")
+st.header("📚 Learning")
+st.write("Databricks, SQL and Power BI updates")
