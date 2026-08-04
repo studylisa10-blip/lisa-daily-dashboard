@@ -10,7 +10,7 @@ except Exception:
 
 
 # ------------------------------------------------------------
-# PAGE CONFIG
+# PAGE SETUP
 # ------------------------------------------------------------
 
 st.set_page_config(
@@ -19,33 +19,22 @@ st.set_page_config(
     layout="wide"
 )
 
-
-# ------------------------------------------------------------
-# CONSTANTS
-# ------------------------------------------------------------
-
 UK_TZ = ZoneInfo("Europe/London")
 
-OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+WORTHING_LAT = 50.817
+WORTHING_LON = -0.375
 
-WORTHING_LATITUDE = 50.817
-WORTHING_LONGITUDE = -0.375
-
-THESPORTSDB_KEY = "123"
-THESPORTSDB_BASE_URL = f"https://www.thesportsdb.com/api/v1/json/{THESPORTSDB_KEY}"
-
-MEN_TEAM_NAME = "Manchester United"
-WOMEN_TEAM_NAME = "Manchester United Women"
+SPORTSDB_KEY = "123"
+SPORTSDB_BASE = f"https://www.thesportsdb.com/api/v1/json/{SPORTSDB_KEY}"
 
 
 # ------------------------------------------------------------
-# CSS
+# STYLE
 # ------------------------------------------------------------
 
 st.markdown(
     """
     <style>
-
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
         color: white;
@@ -59,44 +48,44 @@ st.markdown(
         background: linear-gradient(135deg, #18A0FB, #7B61FF);
         padding: 35px;
         border-radius: 24px;
-        margin-bottom: 28px;
-        box-shadow: 0px 10px 30px rgba(0,0,0,0.25);
+        margin-bottom: 25px;
+        box-shadow: 0px 12px 30px rgba(0,0,0,0.30);
     }
 
     .hero h1 {
         color: white;
-        font-size: 46px;
-        margin-bottom: 8px;
+        font-size: 44px;
+        margin-bottom: 5px;
     }
 
     .hero p {
         color: white;
-        font-size: 17px;
+        font-size: 16px;
     }
 
     .card {
-        background: rgba(30, 41, 59, 0.92);
-        padding: 24px;
-        border-radius: 20px;
+        background: rgba(30, 41, 59, 0.95);
+        padding: 22px;
+        border-radius: 18px;
         border: 1px solid #334155;
-        min-height: 230px;
+        min-height: 220px;
         box-shadow: 0px 10px 24px rgba(0,0,0,0.22);
+        margin-bottom: 18px;
     }
 
     .card h3 {
         color: white;
-        margin-bottom: 10px;
     }
 
     .metric {
-        font-size: 34px;
+        font-size: 32px;
         font-weight: 800;
         color: #38BDF8;
-        margin-top: 12px;
-        margin-bottom: 8px;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
-    .subtle {
+    .small {
         color: #CBD5E1;
         font-size: 14px;
     }
@@ -104,7 +93,7 @@ st.markdown(
     .fixture {
         background: rgba(15, 23, 42, 0.75);
         padding: 16px;
-        border-radius: 16px;
+        border-radius: 15px;
         border: 1px solid #334155;
         margin-bottom: 12px;
     }
@@ -119,22 +108,6 @@ st.markdown(
         color: #CBD5E1;
         font-size: 14px;
     }
-
-    .good {
-        color: #22C55E;
-        font-weight: 700;
-    }
-
-    .warn {
-        color: #FACC15;
-        font-weight: 700;
-    }
-
-    .error {
-        color: #FB7185;
-        font-weight: 700;
-    }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -142,14 +115,14 @@ st.markdown(
 
 
 # ------------------------------------------------------------
-# HELPER FUNCTIONS
+# HELPERS
 # ------------------------------------------------------------
 
 def now_uk():
     return datetime.now(UK_TZ)
 
 
-def safe_get_json(url, params=None):
+def safe_json(url, params=None):
     try:
         response = requests.get(url, params=params, timeout=15)
         response.raise_for_status()
@@ -159,48 +132,41 @@ def safe_get_json(url, params=None):
 
 
 def weather_code_to_text(code):
-    weather_codes = {
+    codes = {
         0: "Clear sky",
         1: "Mainly clear",
         2: "Partly cloudy",
         3: "Overcast",
         45: "Fog",
-        48: "Depositing rime fog",
+        48: "Freezing fog",
         51: "Light drizzle",
         53: "Moderate drizzle",
-        55: "Dense drizzle",
-        56: "Light freezing drizzle",
-        57: "Dense freezing drizzle",
-        61: "Slight rain",
+        55: "Heavy drizzle",
+        61: "Light rain",
         63: "Moderate rain",
         65: "Heavy rain",
-        66: "Light freezing rain",
-        67: "Heavy freezing rain",
-        71: "Slight snow",
+        71: "Light snow",
         73: "Moderate snow",
         75: "Heavy snow",
-        77: "Snow grains",
-        80: "Slight rain showers",
+        80: "Light rain showers",
         81: "Moderate rain showers",
-        82: "Violent rain showers",
-        85: "Slight snow showers",
-        86: "Heavy snow showers",
+        82: "Heavy rain showers",
         95: "Thunderstorm",
-        96: "Thunderstorm with slight hail",
-        99: "Thunderstorm with heavy hail"
+        96: "Thunderstorm with hail",
+        99: "Heavy thunderstorm with hail"
     }
 
-    return weather_codes.get(code, "Weather unavailable")
+    return codes.get(code, "Weather unavailable")
 
 
-def format_fixture_datetime(event):
+def format_match_time(event):
     timestamp = event.get("strTimestamp")
 
     if timestamp:
         try:
-            dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-            dt_uk = dt.astimezone(UK_TZ)
-            return dt_uk.strftime("%A %d %B %Y, %H:%M")
+            match_dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            match_dt = match_dt.astimezone(UK_TZ)
+            return match_dt.strftime("%A %d %B %Y, %H:%M")
         except Exception:
             pass
 
@@ -216,16 +182,18 @@ def format_fixture_datetime(event):
 
 @st.cache_data(ttl=1800)
 def get_weather():
+    url = "https://api.open-meteo.com/v1/forecast"
+
     params = {
-        "latitude": WORTHING_LATITUDE,
-        "longitude": WORTHING_LONGITUDE,
+        "latitude": WORTHING_LAT,
+        "longitude": WORTHING_LON,
         "current": "temperature_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation",
         "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code",
         "timezone": "Europe/London",
         "forecast_days": 3
     }
 
-    data = safe_get_json(OPEN_METEO_URL, params=params)
+    data = safe_json(url, params)
 
     if "error" in data:
         return {
@@ -238,7 +206,7 @@ def get_weather():
 
     return {
         "ok": True,
-        "temperature": current.get("temperature_2m"),
+        "temp": current.get("temperature_2m"),
         "feels_like": current.get("apparent_temperature"),
         "condition": weather_code_to_text(current.get("weather_code")),
         "wind": current.get("wind_speed_10m"),
@@ -252,9 +220,10 @@ def get_weather():
 
 
 @st.cache_data(ttl=3600)
-def search_team(team_name):
-    url = f"{THESPORTSDB_BASE_URL}/searchteams.php"
-    data = safe_get_json(url, params={"t": team_name})
+def find_team(team_name):
+    url = f"{SPORTSDB_BASE}/searchteams.php"
+
+    data = safe_json(url, {"t": team_name})
 
     if "error" in data:
         return None
@@ -264,48 +233,34 @@ def search_team(team_name):
     if not teams:
         return None
 
-    exact_matches = [
-        team for team in teams
-        if (team.get("strTeam") or "").lower() == team_name.lower()
-    ]
-
-    if exact_matches:
-        return exact_matches[0]
-
-    partial_matches = [
-        team for team in teams
-        if team_name.lower() in (team.get("strTeam") or "").lower()
-    ]
-
-    if partial_matches:
-        return partial_matches[0]
+    for team in teams:
+        if (team.get("strTeam") or "").lower() == team_name.lower():
+            return team
 
     return teams[0]
 
 
 @st.cache_data(ttl=3600)
 def get_next_fixtures(team_name):
-    team = search_team(team_name)
+    team = find_team(team_name)
 
     if not team:
         return {
             "ok": False,
-            "team_name": team_name,
-            "team_id": None,
+            "team": team_name,
             "fixtures": [],
-            "error": f"Could not find {team_name} in TheSportsDB."
+            "error": f"Could not find {team_name}."
         }
 
     team_id = team.get("idTeam")
+    url = f"{SPORTSDB_BASE}/eventsnext.php"
 
-    url = f"{THESPORTSDB_BASE_URL}/eventsnext.php"
-    data = safe_get_json(url, params={"id": team_id})
+    data = safe_json(url, {"id": team_id})
 
     if "error" in data:
         return {
             "ok": False,
-            "team_name": team.get("strTeam", team_name),
-            "team_id": team_id,
+            "team": team.get("strTeam", team_name),
             "fixtures": [],
             "error": data["error"]
         }
@@ -314,88 +269,89 @@ def get_next_fixtures(team_name):
 
     return {
         "ok": True,
-        "team_name": team.get("strTeam", team_name),
-        "team_id": team_id,
-        "fixtures": fixtures[:5],
+        "team": team.get("strTeam", team_name),
+        "league": team.get("strLeague"),
         "badge": team.get("strBadge"),
-        "league": team.get("strLeague")
+        "fixtures": fixtures[:5]
     }
 
 
-def build_briefing_prompt(weather, men_fixtures, women_fixtures):
-    weather_line = "Weather unavailable"
-
+def build_ai_prompt(weather, men, women):
     if weather.get("ok"):
-        weather_line = (
-            f"Worthing is currently {weather.get('temperature')}°C, "
-            f"feels like {weather.get('feels_like')}°C, "
-            f"condition: {weather.get('condition')}, "
-            f"wind: {weather.get('wind')} km/h."
+        weather_text = (
+            f"Worthing is {weather.get('temp')} degrees Celsius, "
+            f"feels like {weather.get('feels_like')} degrees, "
+            f"condition is {weather.get('condition')}, "
+            f"wind is {weather.get('wind')} km/h."
         )
+    else:
+        weather_text = "Weather is unavailable."
 
-    def fixture_line(fixtures_result, label):
-        fixtures = fixtures_result.get("fixtures", [])
+    def fixture_text(data, label):
+        fixtures = data.get("fixtures", [])
+
         if not fixtures:
             return f"{label}: fixture data unavailable."
 
-        next_match = fixtures[0]
-        home = next_match.get("strHomeTeam", "TBC")
-        away = next_match.get("strAwayTeam", "TBC")
-        when = format_fixture_datetime(next_match)
-        league = next_match.get("strLeague", "Competition TBC")
+        event = fixtures[0]
+        home = event.get("strHomeTeam", "TBC")
+        away = event.get("strAwayTeam", "TBC")
+        comp = event.get("strLeague", "Competition TBC")
+        when = format_match_time(event)
 
-        return f"{label}: {home} vs {away}, {league}, {when}."
+        return f"{label}: {home} vs {away}, {comp}, {when}."
 
-    men_line = fixture_line(men_fixtures, "Manchester United men")
-    women_line = fixture_line(women_fixtures, "Manchester United women")
+    men_text = fixture_text(men, "Manchester United men")
+    women_text = fixture_text(women, "Manchester United women")
 
-    prompt = f"""
-    Write a short, friendly, personal morning briefing for Lisa.
+    return f"""
+    Write a short personal morning briefing for Lisa.
 
-    Make it sound upbeat, useful and natural.
-    Keep it concise.
+    Tone:
+    Friendly, upbeat and useful.
+
+    Rules:
     Do not mention smart metering.
-    Do not invent fixture data.
+    Do not invent data.
     If something is unavailable, say it naturally.
+    Keep it short.
 
-    Today's date:
-    {now_uk().strftime('%A %d %B %Y')}
+    Date:
+    {now_uk().strftime("%A %d %B %Y")}
 
     Weather:
-    {weather_line}
+    {weather_text}
 
     Football:
-    {men_line}
-    {women_line}
+    {men_text}
+    {women_text}
 
-    Finish with one practical suggestion for the day.
+    End with one practical suggestion for the day.
     """
-
-    return prompt
 
 
 @st.cache_data(ttl=1800)
-def generate_gemini_briefing(weather, men_fixtures, women_fixtures):
+def get_gemini_briefing(weather, men, women):
     if genai is None:
         return {
             "ok": False,
-            "text": "Gemini is not installed yet. Add google-genai to requirements.txt, then redeploy."
+            "text": "Gemini is not installed yet. Add google-genai to requirements.txt."
         }
 
-    gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+    api_key = st.secrets.get("GEMINI_API_KEY", "")
 
-    if not gemini_key:
+    if not api_key:
         return {
             "ok": False,
-            "text": "Gemini is ready to connect. Add your GEMINI_API_KEY in Streamlit Secrets."
+            "text": "Gemini is ready, but you need to add your GEMINI_API_KEY in Streamlit Secrets."
         }
 
     try:
-        client = genai.Client(api_key=gemini_key)
+        client = genai.Client(api_key=api_key)
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=build_briefing_prompt(weather, men_fixtures, women_fixtures)
+            contents=build_ai_prompt(weather, men, women)
         )
 
         return {
@@ -411,22 +367,22 @@ def generate_gemini_briefing(weather, men_fixtures, women_fixtures):
 
 
 # ------------------------------------------------------------
-# DISPLAY COMPONENTS
+# DISPLAY FUNCTIONS
 # ------------------------------------------------------------
 
-def fixture_card(title, result):
-    fixtures = result.get("fixtures", [])
-
+def show_fixture_list(title, data):
     st.markdown(f"### {title}")
 
-    if not result.get("ok"):
-        st.error(result.get("error", "Fixture data could not be loaded."))
+    if not data.get("ok"):
+        st.warning(data.get("error", "Fixtures unavailable."))
         return
 
-    st.caption(f"{result.get('team_name')} | {result.get('league') or 'League unavailable'}")
+    st.caption(f"{data.get('team')} | {data.get('league') or 'League unavailable'}")
+
+    fixtures = data.get("fixtures", [])
 
     if not fixtures:
-        st.warning("No upcoming fixtures returned by the football API.")
+        st.warning("No upcoming fixtures found.")
         return
 
     for event in fixtures:
@@ -434,7 +390,7 @@ def fixture_card(title, result):
         away = event.get("strAwayTeam", "TBC")
         league = event.get("strLeague", "Competition TBC")
         venue = event.get("strVenue") or "Venue TBC"
-        when = format_fixture_datetime(event)
+        when = format_match_time(event)
 
         st.markdown(
             f"""
@@ -449,15 +405,15 @@ def fixture_card(title, result):
         )
 
 
-def weather_panel(weather):
+def show_weather(weather):
     if not weather.get("ok"):
-        st.error(f"Weather could not be loaded: {weather.get('error')}")
+        st.error(weather.get("error", "Weather unavailable."))
         return
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("Worthing now", f"{weather.get('temperature')}°C")
+        st.metric("Worthing now", f"{weather.get('temp')}°C")
 
     with col2:
         st.metric("Feels like", f"{weather.get('feels_like')}°C")
@@ -478,26 +434,39 @@ def weather_panel(weather):
     rain = weather.get("daily_rain", [])
     codes = weather.get("daily_codes", [])
 
-    forecast_cols = st.columns(3)
+    cols = st.columns(3)
 
     for i in range(min(3, len(dates))):
-        with forecast_colscondition = weather_code_to_text(codes[i]) if i < len(codes) else "Unavailable"
-            rain_value = rain[i] if i < len(rain) else "N/A"
-            high = highs[i] if i < len(highs) else "N/A"
-            low = lows[i] if i < len(lows) else "N/A"
+        high = highs[i] if i < len(highs) else "N/A"
+        low = lows[i] if i < len(lows) else "N/A"
+        rain_chance = rain[i] if i < len(rain) else "N/A"
+        condition = weather_code_to_text(codes[i]) if i < len(codes) else "Unavailable"
 
-            st.markdown(
+        with colsst.markdown(
                 f"""
                 <div class="card">
                     <h3>{dates[i]}</h3>
                     <div class="metric">{high}°C</div>
-                    <p class="subtle">Low: {low}°C</p>
-                    <p class="subtle">{condition}</p>
-                    <p class="subtle">Rain chance: {rain_value}%</p>
+                    <p class="small">Low: {low}°C</p>
+                    <p class="small">{condition}</p>
+                    <p class="small">Rain chance: {rain_chance}%</p>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
+
+
+def next_fixture_text(data):
+    fixtures = data.get("fixtures", [])
+
+    if not fixtures:
+        return "Fixture unavailable", data.get("error", "No fixture returned")
+
+    event = fixtures[0]
+    title = f"{event.get('strHomeTeam', 'TBC')} vs {event.get('strAwayTeam', 'TBC')}"
+    when = format_match_time(event)
+
+    return title, when
 
 
 # ------------------------------------------------------------
@@ -505,8 +474,8 @@ def weather_panel(weather):
 # ------------------------------------------------------------
 
 weather = get_weather()
-men_fixtures = get_next_fixtures(MEN_TEAM_NAME)
-women_fixtures = get_next_fixtures(WOMEN_TEAM_NAME)
+men_fixtures = get_next_fixtures("Manchester United")
+women_fixtures = get_next_fixtures("Manchester United Women")
 
 
 # ------------------------------------------------------------
@@ -531,9 +500,9 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 
 if weather.get("ok"):
-    st.sidebar.success(f"Worthing: {weather.get('temperature')}°C")
+    st.sidebar.success(f"Weather: {weather.get('temp')}°C")
 else:
-    st.sidebar.warning("Weather unavailable")
+    st.sidebar.warning("Weather issue")
 
 if men_fixtures.get("ok"):
     st.sidebar.success("Men's fixtures loaded")
@@ -556,7 +525,7 @@ if page == "Home":
         f"""
         <div class="hero">
             <h1>☕ Good Morning Lisa</h1>
-            <p>{now_uk().strftime('%A %d %B %Y, %H:%M')}</p>
+            <p>{now_uk().strftime("%A %d %B %Y, %H:%M")}</p>
             <p>Your personal daily briefing, football hub and morning command centre.</p>
         </div>
         """,
@@ -566,62 +535,50 @@ if page == "Home":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        temp_display = f"{weather.get('temperature')}°C" if weather.get("ok") else "Unavailable"
-        condition_display = weather.get("condition") if weather.get("ok") else "Weather not loaded"
+        if weather.get("ok"):
+            temp = f"{weather.get('temp')}°C"
+            condition = weather.get("condition")
+        else:
+            temp = "Unavailable"
+            condition = "Weather not loaded"
 
         st.markdown(
             f"""
             <div class="card">
                 <h3>🌦 Worthing Weather</h3>
-                <div class="metric">{temp_display}</div>
-                <p>{condition_display}</p>
-                <p class="subtle">Powered by Open-Meteo</p>
+                <div class="metric">{temp}</div>
+                <p>{condition}</p>
+                <p class="small">Powered by Open-Meteo</p>
             </div>
             """,
             unsafe_allow_html=True
         )
 
     with col2:
-        men_next = men_fixtures.get("fixtures", [])
-
-        if men_next:
-            event = men_next[0]
-            title = f"{event.get('strHomeTeam', 'TBC')} vs {event.get('strAwayTeam', 'TBC')}"
-            when = format_fixture_datetime(event)
-        else:
-            title = "Fixture unavailable"
-            when = men_fixtures.get("error", "No fixture returned")
+        men_title, men_when = next_fixture_text(men_fixtures)
 
         st.markdown(
             f"""
             <div class="card">
                 <h3>⚽ United Men</h3>
                 <div class="metric">Next Match</div>
-                <p>{title}</p>
-                <p class="subtle">{when}</p>
+                <p>{men_title}</p>
+                <p class="small">{men_when}</p>
             </div>
             """,
             unsafe_allow_html=True
         )
 
     with col3:
-        women_next = women_fixtures.get("fixtures", [])
-
-        if women_next:
-            event = women_next[0]
-            title = f"{event.get('strHomeTeam', 'TBC')} vs {event.get('strAwayTeam', 'TBC')}"
-            when = format_fixture_datetime(event)
-        else:
-            title = "Fixture unavailable"
-            when = women_fixtures.get("error", "No fixture returned")
+        women_title, women_when = next_fixture_text(women_fixtures)
 
         st.markdown(
             f"""
             <div class="card">
                 <h3>⚽ United Women</h3>
                 <div class="metric">Next Match</div>
-                <p>{title}</p>
-                <p class="subtle">{when}</p>
+                <p>{women_title}</p>
+                <p class="small">{women_when}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -629,7 +586,7 @@ if page == "Home":
 
     st.markdown("## 🤖 Lisa's AI Morning Briefing")
 
-    briefing = generate_gemini_briefing(weather, men_fixtures, women_fixtures)
+    briefing = get_gemini_briefing(weather, men_fixtures, women_fixtures)
 
     if briefing.get("ok"):
         st.success(briefing.get("text"))
@@ -638,15 +595,13 @@ if page == "Home":
 
     st.markdown("---")
 
-    st.markdown("## Quick view")
-
     col_a, col_b = st.columns(2)
 
     with col_a:
-        fixture_card("Manchester United Men", men_fixtures)
+        show_fixture_list("Manchester United Men", men_fixtures)
 
     with col_b:
-        fixture_card("Manchester United Women", women_fixtures)
+        show_fixture_list("Manchester United Women", women_fixtures)
 
 
 # ------------------------------------------------------------
@@ -660,12 +615,12 @@ elif page == "Football":
     col1, col2 = st.columns(2)
 
     with col1:
-        fixture_card("Manchester United Men", men_fixtures)
+        show_fixture_list("Manchester United Men", men_fixtures)
 
     with col2:
-        fixture_card("Manchester United Women", women_fixtures)
+        show_fixture_list("Manchester United Women", women_fixtures)
 
-    st.caption("Fixture data comes from TheSportsDB. If a team does not return fixtures, the API may not currently have upcoming events for that team.")
+    st.caption("Football data is loaded from TheSportsDB. If a fixture is missing, the API may not currently have that team schedule available.")
 
 
 # ------------------------------------------------------------
@@ -675,7 +630,7 @@ elif page == "Football":
 elif page == "Weather":
 
     st.title("🌦 Worthing Weather")
-    weather_panel(weather)
+    show_weather(weather)
 
 
 # ------------------------------------------------------------
@@ -686,24 +641,21 @@ elif page == "AI Briefing":
 
     st.title("🤖 Lisa AI Briefing")
 
-    briefing = generate_gemini_briefing(weather, men_fixtures, women_fixtures)
+    briefing = get_gemini_briefing(weather, men_fixtures, women_fixtures)
 
     if briefing.get("ok"):
         st.success(briefing.get("text"))
     else:
         st.warning(briefing.get("text"))
 
-    st.markdown("---")
-
-    st.markdown("### Source data being sent to Gemini")
-
-    st.json(
-        {
-            "weather": weather,
-            "men_fixtures": men_fixtures,
-            "women_fixtures": women_fixtures
-        }
-    )
+    with st.expander("View source data"):
+        st.json(
+            {
+                "weather": weather,
+                "men_fixtures": men_fixtures,
+                "women_fixtures": women_fixtures
+            }
+        )
 
 
 # ------------------------------------------------------------
@@ -723,9 +675,9 @@ elif page == "Learning":
 
             - Python
             - Streamlit
-            - Power BI
-            - SQL
             - APIs
+            - GitHub
+            - Data visualisation
             """
         )
 
@@ -738,11 +690,11 @@ elif page == "Learning":
             - Prompt engineering
             - Personal automation
             - App building
-            - GitHub deployment
+            - AI summaries
             """
         )
 
-    st.success("You are already building a proper deployed app. This is exactly how you learn it.")
+    st.success("You are building a real deployed app. This is exactly how you learn it.")
 
 
 # ------------------------------------------------------------
@@ -754,12 +706,12 @@ elif page == "Goals":
     st.title("🎯 Personal Goals")
 
     st.checkbox("Deploy first Streamlit app", value=True)
-    st.checkbox("Connect free weather API", value=True)
-    st.checkbox("Connect Man United fixtures", value=True)
-    st.checkbox("Connect Gemini AI")
-    st.checkbox("Make it look premium")
+    st.checkbox("Add Open-Meteo weather", value=True)
+    st.checkbox("Add Man United fixtures", value=True)
+    st.checkbox("Add Gemini AI briefing")
     st.checkbox("Add personalised news")
+    st.checkbox("Make it look premium", value=True)
 
     st.progress(70)
 
-    st.success("Current status: website is live, weather is live, football is connected, Gemini is ready once the secret key is added.")
+    st.success("Current status: website is live, weather is connected, football is connected, Gemini is ready once the secret key is added.")
