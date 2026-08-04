@@ -195,7 +195,7 @@ if page == "Home":
         current_uk_date()
     )
 
-    col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
 
@@ -224,7 +224,6 @@ with col4:
         "⚽ Manchester United Women",
         next_womens_fixture
     )
-        )
 
     st.divider()
 
