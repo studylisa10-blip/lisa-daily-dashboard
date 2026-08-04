@@ -4,7 +4,7 @@ import feedparser
 from datetime import datetime
 
 # --------------------------------------------------
-# PAGE
+# PAGE SETUP
 # --------------------------------------------------
 
 st.set_page_config(
@@ -54,7 +54,6 @@ page = st.sidebar.radio(
         "Home",
         "Football",
         "News",
-        "AI News",
         "Learning"
     ]
 )
@@ -109,7 +108,49 @@ def get_mens_fixture():
         return None
 
 
-def get_bbc_news():
+def get_womens_fixture():
+
+    try:
+
+        search_url = (
+            "https://www.thesportsdb.com/api/v1/json/123/"
+            "searchteams.php?t=Manchester%20United%20Women"
+        )
+
+        search_data = requests.get(
+            search_url,
+            timeout=10
+        ).json()
+
+        teams = search_data.get("teams", [])
+
+        if not teams:
+            return None
+
+        team_id = teams[0]["idTeam"]
+
+        fixture_url = (
+            f"https://www.thesportsdb.com/api/v1/json/123/"
+            f"eventsnext.php?id={team_id}"
+        )
+
+        fixture_data = requests.get(
+            fixture_url,
+            timeout=10
+        ).json()
+
+        fixtures = fixture_data.get("events", [])
+
+        if fixtures:
+            return fixtures[0]
+
+        return None
+
+    except:
+        return None
+
+
+def get_headlines():
 
     try:
 
@@ -123,36 +164,6 @@ def get_bbc_news():
 
         return []
 
-
-def get_football_news():
-
-    try:
-
-        feed = feedparser.parse(
-            "https://feeds.bbci.co.uk/sport/football/rss.xml"
-        )
-
-        return feed.entries[:10]
-
-    except:
-
-        return []
-
-
-def get_ai_news():
-
-    try:
-
-        feed = feedparser.parse(
-            "https://www.artificialintelligence-news.com/feed/"
-        )
-
-        return feed.entries[:10]
-
-    except:
-
-        return []
-
 # --------------------------------------------------
 # LOAD DATA
 # --------------------------------------------------
@@ -161,11 +172,9 @@ weather = get_weather()
 
 mens_fixture = get_mens_fixture()
 
-bbc_news = get_bbc_news()
+womens_fixture = get_womens_fixture()
 
-football_news = get_football_news()
-
-ai_news = get_ai_news()
+headlines = get_headlines()
 
 # --------------------------------------------------
 # HOME
@@ -179,16 +188,21 @@ if page == "Home":
         datetime.now().strftime("%A %d %B %Y")
     )
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
+
+    # WEATHER
 
     with col1:
 
         st.markdown(f"""
         <div class="card">
-        <h3>🌦 Worthing Weather</h3>
+        <h3>🌦 Weather</h3>
         <h1>{weather}°C</h1>
+        <p>Worthing</p>
         </div>
         """, unsafe_allow_html=True)
+
+    # MEN
 
     with col2:
 
@@ -196,6 +210,7 @@ if page == "Home":
 
             st.markdown(f"""
             <div class="card">
+
             <h3>⚽ Manchester United Men</h3>
 
             <b>
@@ -206,7 +221,65 @@ if page == "Home":
 
             <br><br>
 
-            {mens_fixture['dateEvent']}
+            📅 {mens_fixture['dateEvent']}
+
+            <br>
+
+            🕒 {mens_fixture.get('strTime','TBC')}
+
+            </div>
+            """, unsafe_allow_html=True)
+
+            fixture_text = (
+                f"{mens_fixture['strHomeTeam']} vs "
+                f"{mens_fixture['strAwayTeam']}"
+            )
+
+        else:
+
+            fixture_text = "No fixture available"
+
+            st.markdown("""
+            <div class="card">
+            <h3>⚽ Manchester United Men</h3>
+            No fixture available
+            </div>
+            """, unsafe_allow_html=True)
+
+    # WOMEN
+
+    with col3:
+
+        if womens_fixture:
+
+            st.markdown(f"""
+            <div class="card">
+
+            <h3>⚽ Manchester United Women</h3>
+
+            <b>
+            {womens_fixture['strHomeTeam']}
+            vs
+            {womens_fixture['strAwayTeam']}
+            </b>
+
+            <br><br>
+
+            📅 {womens_fixture['dateEvent']}
+
+            <br>
+
+            🕒 {womens_fixture.get('strTime','TBC')}
+
+            </div>
+            """, unsafe_allow_html=True)
+
+        else:
+
+            st.markdown("""
+            <div class="card">
+            <h3>⚽ Manchester United Women</h3>
+            No fixture available
             </div>
             """, unsafe_allow_html=True)
 
@@ -218,9 +291,13 @@ if page == "Home":
         f"""
 Good morning Lisa.
 
-Worthing temperature: {weather}°C.
+Current temperature in Worthing: {weather}°C
 
-Check Football News and AI News for today's updates.
+Next Manchester United fixture:
+
+{fixture_text}
+
+See the News page for today's BBC headlines.
 """
     )
 
@@ -230,41 +307,51 @@ Check Football News and AI News for today's updates.
 
 elif page == "Football":
 
-    st.title("⚽ Football News")
+    st.title("⚽ Football")
 
-    for article in football_news:
+    if mens_fixture:
 
-        st.markdown(f"""
-        <div class="news">
-        <b>{article.title}</b>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("Manchester United Men")
+
+        st.write(
+            f"{mens_fixture['strHomeTeam']} vs {mens_fixture['strAwayTeam']}"
+        )
+
+        st.write(
+            f"Date: {mens_fixture['dateEvent']}"
+        )
+
+        st.write(
+            f"Time: {mens_fixture.get('strTime','TBC')}"
+        )
+
+    st.divider()
+
+    if womens_fixture:
+
+        st.subheader("Manchester United Women")
+
+        st.write(
+            f"{womens_fixture['strHomeTeam']} vs {womens_fixture['strAwayTeam']}"
+        )
+
+        st.write(
+            f"Date: {womens_fixture['dateEvent']}"
+        )
+
+        st.write(
+            f"Time: {womens_fixture.get('strTime','TBC')}"
+        )
 
 # --------------------------------------------------
-# NEWS PAGE
+# NEWS
 # --------------------------------------------------
 
 elif page == "News":
 
     st.title("📰 BBC Headlines")
 
-    for article in bbc_news:
-
-        st.markdown(f"""
-        <div class="news">
-        <b>{article.title}</b>
-        </div>
-        """, unsafe_allow_html=True)
-
-# --------------------------------------------------
-# AI NEWS PAGE
-# --------------------------------------------------
-
-elif page == "AI News":
-
-    st.title("🤖 AI News")
-
-    for article in ai_news:
+    for article in headlines:
 
         st.markdown(f"""
         <div class="news">
@@ -286,5 +373,9 @@ elif page == "Learning":
     st.write("• Power BI")
     st.write("• Databricks")
     st.write("• SQL")
+
+# --------------------------------------------------
+# SIDEBAR STATUS
+# --------------------------------------------------
 
 st.sidebar.success("✅ Dashboard Live")
