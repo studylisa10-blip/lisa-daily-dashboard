@@ -59,7 +59,7 @@ page = st.sidebar.radio(
 )
 
 # --------------------------------------------------
-# FUNCTIONS
+# WEATHER
 # --------------------------------------------------
 
 def get_weather():
@@ -70,21 +70,23 @@ def get_weather():
             "https://api.open-meteo.com/v1/forecast"
             "?latitude=50.817"
             "&longitude=-0.375"
-            "&current=temperature_2m"
+            "&current_weather=true"
         )
 
-        response = requests.get(url, timeout=10)
+        data = requests.get(
+            url,
+            timeout=10
+        ).json()
 
-        data = response.json()
-
-        if "current" in data:
-            return data["current"]["temperature_2m"]
-
-        return "N/A"
+        return data["current_weather"]["temperature"]
 
     except:
+
         return "N/A"
 
+# --------------------------------------------------
+# MEN FIXTURE
+# --------------------------------------------------
 
 def get_mens_fixture():
 
@@ -95,7 +97,10 @@ def get_mens_fixture():
             "eventsnext.php?id=133612"
         )
 
-        data = requests.get(url, timeout=10).json()
+        data = requests.get(
+            url,
+            timeout=10
+        ).json()
 
         fixtures = data.get("events", [])
 
@@ -105,8 +110,12 @@ def get_mens_fixture():
         return None
 
     except:
+
         return None
 
+# --------------------------------------------------
+# WOMEN FIXTURE
+# --------------------------------------------------
 
 def get_womens_fixture():
 
@@ -147,8 +156,12 @@ def get_womens_fixture():
         return None
 
     except:
+
         return None
 
+# --------------------------------------------------
+# BBC NEWS
+# --------------------------------------------------
 
 def get_headlines():
 
@@ -223,21 +236,14 @@ if page == "Home":
 
             📅 {mens_fixture['dateEvent']}
 
-            <br>
+            <br><br>
 
             🕒 {mens_fixture.get('strTime','TBC')}
 
             </div>
             """, unsafe_allow_html=True)
 
-            fixture_text = (
-                f"{mens_fixture['strHomeTeam']} vs "
-                f"{mens_fixture['strAwayTeam']}"
-            )
-
         else:
-
-            fixture_text = "No fixture available"
 
             st.markdown("""
             <div class="card">
@@ -267,7 +273,7 @@ if page == "Home":
 
             📅 {womens_fixture['dateEvent']}
 
-            <br>
+            <br><br>
 
             🕒 {womens_fixture.get('strTime','TBC')}
 
@@ -279,7 +285,7 @@ if page == "Home":
             st.markdown("""
             <div class="card">
             <h3>⚽ Manchester United Women</h3>
-            No fixture available
+            No upcoming fixture returned
             </div>
             """, unsafe_allow_html=True)
 
@@ -293,11 +299,9 @@ Good morning Lisa.
 
 Current temperature in Worthing: {weather}°C
 
-Next Manchester United fixture:
+Check the Football page for fixtures.
 
-{fixture_text}
-
-See the News page for today's BBC headlines.
+Check the News page for today's BBC headlines.
 """
     )
 
@@ -309,39 +313,43 @@ elif page == "Football":
 
     st.title("⚽ Football")
 
-    if mens_fixture:
+    st.subheader("Manchester United Men")
 
-        st.subheader("Manchester United Men")
+    if mens_fixture:
 
         st.write(
             f"{mens_fixture['strHomeTeam']} vs {mens_fixture['strAwayTeam']}"
         )
 
         st.write(
-            f"Date: {mens_fixture['dateEvent']}"
+            f"📅 {mens_fixture['dateEvent']}"
         )
 
         st.write(
-            f"Time: {mens_fixture.get('strTime','TBC')}"
+            f"🕒 {mens_fixture.get('strTime','TBC')}"
         )
 
     st.divider()
 
-    if womens_fixture:
+    st.subheader("Manchester United Women")
 
-        st.subheader("Manchester United Women")
+    if womens_fixture:
 
         st.write(
             f"{womens_fixture['strHomeTeam']} vs {womens_fixture['strAwayTeam']}"
         )
 
         st.write(
-            f"Date: {womens_fixture['dateEvent']}"
+            f"📅 {womens_fixture['dateEvent']}"
         )
 
         st.write(
-            f"Time: {womens_fixture.get('strTime','TBC')}"
+            f"🕒 {womens_fixture.get('strTime','TBC')}"
         )
+
+    else:
+
+        st.write("No fixture returned")
 
 # --------------------------------------------------
 # NEWS
@@ -353,11 +361,14 @@ elif page == "News":
 
     for article in headlines:
 
-        st.markdown(f"""
-        <div class="news">
-        <b>{article.title}</b>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="news">
+            <b>{article.title}</b>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # --------------------------------------------------
 # LEARNING
@@ -375,7 +386,7 @@ elif page == "Learning":
     st.write("• SQL")
 
 # --------------------------------------------------
-# SIDEBAR STATUS
+# STATUS
 # --------------------------------------------------
 
 st.sidebar.success("✅ Dashboard Live")
