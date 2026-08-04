@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# STYLING
+# STYLE
 # --------------------------------------------------
 
 st.markdown("""
@@ -24,31 +24,18 @@ st.markdown("""
     background-color: #0f172a;
 }
 
-.big_title {
-    font-size: 50px;
-    font-weight: bold;
-    color: white;
-}
-
-.subtitle {
-    font-size: 18px;
-    color: #94A3B8;
-    margin-bottom: 25px;
-}
-
 .card {
-    background-color: #1E293B;
+    background-color: #1e293b;
     padding: 20px;
     border-radius: 15px;
     border: 1px solid #334155;
 }
 
-.news_card {
+.news {
     background-color: #111827;
-    padding: 15px;
+    padding: 12px;
     border-radius: 10px;
     margin-bottom: 10px;
-    border-left: 5px solid #38BDF8;
 }
 
 </style>
@@ -60,82 +47,77 @@ st.markdown("""
 
 def get_weather():
 
-    url = (
-        "https://api.open-meteo.com/v1/forecast"
-        "?latitude=50.817"
-        "&longitude=-0.375"
-        "&current=temperature_2m"
-    )
+    try:
 
-    data = requests.get(url).json()
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            "?latitude=50.817"
+            "&longitude=-0.375"
+            "&current=temperature_2m"
+        )
 
-    return data["current"]["temperature_2m"]
+        response = requests.get(url, timeout=10)
+
+        data = response.json()
+
+        if "current" in data:
+            return data["current"]["temperature_2m"]
+
+        return "N/A"
+
+    except:
+        return "N/A"
 
 # --------------------------------------------------
-# MAN UTD MEN
+# MEN
 # --------------------------------------------------
 
 def get_mens_fixture():
 
-    url = (
-        "https://www.thesportsdb.com/api/v1/json/123/"
-        "eventsnext.php?id=133612"
-    )
+    try:
 
-    data = requests.get(url).json()
+        url = (
+            "https://www.thesportsdb.com/api/v1/json/123/"
+            "eventsnext.php?id=133612"
+        )
 
-    fixtures = data.get("events", [])
+        data = requests.get(url, timeout=10).json()
 
-    if fixtures:
-        return fixtures[0]
+        fixtures = data.get("events", [])
 
-    return None
+        if fixtures:
+            return fixtures[0]
+
+        return None
+
+    except:
+        return None
 
 # --------------------------------------------------
-# MAN UTD WOMEN
+# WOMEN
 # --------------------------------------------------
 
 def get_womens_fixture():
 
-    search_url = (
-        "https://www.thesportsdb.com/api/v1/json/123/"
-        "searchteams.php?t=Manchester%20United%20Women"
-    )
-
-    search_data = requests.get(search_url).json()
-
-    teams = search_data.get("teams", [])
-
-    if not teams:
-        return None
-
-    team_id = teams[0]["idTeam"]
-
-    fixture_url = (
-        f"https://www.thesportsdb.com/api/v1/json/123/"
-        f"eventsnext.php?id={team_id}"
-    )
-
-    fixture_data = requests.get(fixture_url).json()
-
-    fixtures = fixture_data.get("events", [])
-
-    if fixtures:
-        return fixtures[0]
-
     return None
 
 # --------------------------------------------------
-# BBC NEWS
+# NEWS
 # --------------------------------------------------
 
 def get_headlines():
 
-    feed = feedparser.parse(
-        "https://feeds.bbci.co.uk/news/rss.xml"
-    )
+    try:
 
-    return feed.entries[:5]
+        feed = feedparser.parse(
+            "https://feeds.bbci.co.uk/news/rss.xml"
+        )
+
+        return feed.entries[:5]
+
+    except:
+
+        return []
 
 # --------------------------------------------------
 # LOAD DATA
@@ -145,98 +127,71 @@ weather = get_weather()
 
 mens_fixture = get_mens_fixture()
 
-womens_fixture = get_womens_fixture()
-
 headlines = get_headlines()
 
 # --------------------------------------------------
 # HEADER
 # --------------------------------------------------
 
-st.markdown(
-    '<div class="big_title">🚀 Lisa\'s Daily Pulse</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="subtitle">Your personal morning newspaper</div>',
-    unsafe_allow_html=True
-)
+st.title("🚀 Lisa's Daily Pulse")
 
 st.caption(
     datetime.now().strftime("%A %d %B %Y")
 )
 
 # --------------------------------------------------
-# TOP CARDS
+# CARDS
 # --------------------------------------------------
 
 col1, col2, col3 = st.columns(3)
 
-# WEATHER
-
 with col1:
 
     st.markdown(f"""
-    <div class='card'>
-        <h3>🌦 Weather</h3>
-        <h1>{weather}°C</h1>
-        <p>Worthing</p>
+    <div class="card">
+    <h3>🌦 Weather</h3>
+    <h1>{weather}°C</h1>
+    <p>Worthing</p>
     </div>
     """, unsafe_allow_html=True)
-
-# MEN
 
 with col2:
 
     if mens_fixture:
 
         st.markdown(f"""
-        <div class='card'>
-            <h3>⚽ United Men</h3>
+        <div class="card">
+        <h3>⚽ Man United Men</h3>
 
-            <b>
-            {mens_fixture['strHomeTeam']}
-            vs
-            {mens_fixture['strAwayTeam']}
-            </b>
+        <b>
+        {mens_fixture['strHomeTeam']}
+        vs
+        {mens_fixture['strAwayTeam']}
+        </b>
 
-            <br><br>
+        <br><br>
 
-            {mens_fixture['dateEvent']}
-        </div>
-        """, unsafe_allow_html=True)
-
-# WOMEN
-
-with col3:
-
-    if womens_fixture:
-
-        st.markdown(f"""
-        <div class='card'>
-            <h3>⚽ United Women</h3>
-
-            <b>
-            {womens_fixture['strHomeTeam']}
-            vs
-            {womens_fixture['strAwayTeam']}
-            </b>
-
-            <br><br>
-
-            {womens_fixture['dateEvent']}
+        {mens_fixture['dateEvent']}
         </div>
         """, unsafe_allow_html=True)
 
     else:
 
         st.markdown("""
-        <div class='card'>
-            <h3>⚽ United Women</h3>
-            No upcoming fixture found
+        <div class="card">
+        <h3>⚽ Man United Men</h3>
+        No fixture available
         </div>
         """, unsafe_allow_html=True)
+
+with col3:
+
+    st.markdown("""
+    <div class="card">
+    <h3>⚽ Man United Women</h3>
+    Coming next update 👌
+    </div>
+    """, unsafe_allow_html=True)
 
 # --------------------------------------------------
 # BRIEFING
@@ -246,26 +201,14 @@ st.divider()
 
 st.subheader("☕ Morning Briefing")
 
-mens_text = "Fixture unavailable"
-
-if mens_fixture:
-
-    mens_text = (
-        f"{mens_fixture['strHomeTeam']} vs "
-        f"{mens_fixture['strAwayTeam']}"
-    )
-
 st.info(
     f"""
 Good morning Lisa.
 
-Worthing is currently {weather}°C.
+Current temperature:
+{weather}°C
 
-Next Manchester United men's fixture:
-
-{mens_text}
-
-Top BBC headlines are listed below.
+BBC Headlines are listed below.
 """
 )
 
@@ -280,28 +223,15 @@ st.subheader("📰 BBC Headlines")
 for article in headlines:
 
     st.markdown(f"""
-    <div class='news_card'>
-        <b>{article.title}</b>
+    <div class="news">
+    <b>{article.title}</b>
     </div>
     """, unsafe_allow_html=True)
-
-# --------------------------------------------------
-# FOCUS
-# --------------------------------------------------
-
-st.divider()
-
-st.subheader("🎯 Today's Focus")
-
-st.write("• Check Manchester United fixtures")
-st.write("• Catch up on the news")
-st.write("• Keep improving Lisa's Daily Pulse")
-st.write("• Add more personalised sections")
 
 # --------------------------------------------------
 # FOOTER
 # --------------------------------------------------
 
 st.success(
-    "✅ Weather Loaded | ✅ Men's Fixtures | ✅ Women's Fixtures | ✅ BBC Headlines"
+    "✅ Weather | ✅ Men's Fixtures | ✅ BBC Headlines"
 )
