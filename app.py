@@ -1,10 +1,6 @@
 import streamlit as st
 import requests
-
-try:
-    from google import genai
-except:
-    genai = None
+import feedparser
 
 st.set_page_config(
     page_title="Lisa's Daily Pulse",
@@ -30,7 +26,7 @@ def get_weather():
     return data["current"]["temperature_2m"]
 
 # --------------------------
-# FOOTBALL
+# MAN UNITED FIXTURE
 # --------------------------
 
 def get_mens_fixture():
@@ -41,56 +37,22 @@ def get_mens_fixture():
 
     fixtures = data.get("events", [])
 
-    if fixtures:
+    if len(fixtures) > 0:
         return fixtures[0]
 
     return None
 
 # --------------------------
-# GEMINI
+# BBC NEWS
 # --------------------------
 
-def get_briefing(temp, fixture):
+def get_headlines():
 
-    if genai is None:
-        return "Gemini package not installed."
+    feed = feedparser.parse(
+        "https://feeds.bbci.co.uk/news/rss.xml"
+    )
 
-    api_key = st.secrets.get("GEMINI_API_KEY")
-
-    if not api_key:
-        return "Add your GEMINI_API_KEY in Streamlit Secrets."
-
-    try:
-
-        client = genai.Client(api_key=api_key)
-
-        prompt = f"""
-
-        You are Lisa's personal morning assistant.
-
-        Current weather:
-        {temp}°C in Worthing
-
-        Next Manchester United fixture:
-        {fixture}
-
-        Write a short friendly morning briefing.
-        Mention the weather.
-        Mention the football.
-        End with one motivational sentence.
-
-        """
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-
-        return response.text
-
-    except Exception as e:
-
-        return f"Gemini error: {e}"
+    return feed.entries[:5]
 
 # --------------------------
 # PAGE
@@ -100,11 +62,9 @@ st.title("🚀 Lisa's Daily Pulse")
 
 col1, col2 = st.columns(2)
 
-temp = get_weather()
-
-fixture = get_mens_fixture()
-
 with col1:
+
+    temp = get_weather()
 
     st.metric(
         label="🌦 Worthing Temperature",
@@ -115,15 +75,20 @@ with col2:
 
     st.subheader("⚽ Manchester United Men")
 
+    fixture = get_mens_fixture()
+
     if fixture:
 
         fixture_text = (
             f"{fixture['strHomeTeam']} vs "
-            f"{fixture['strAwayTeam']} "
-            f"({fixture['dateEvent']})"
+            f"{fixture['strAwayTeam']}"
         )
 
         st.write(fixture_text)
+
+        st.write(
+            fixture["dateEvent"]
+        )
 
     else:
 
@@ -133,11 +98,46 @@ with col2:
 
 st.divider()
 
-st.subheader("🤖 Morning AI Briefing")
+st.subheader("☕ Morning Briefing")
 
-briefing = get_briefing(
-    temp,
-    fixture_text
+st.info(
+    f"""
+Good morning Lisa.
+
+Current temperature in Worthing: {temp}°C
+
+Next Manchester United fixture:
+{fixture_text}
+
+Top headlines are below.
+"""
 )
 
-st.write(briefing)
+st.divider()
+
+st.subheader("📰 BBC Headlines")
+
+headlines = get_headlines()
+
+for article in headlines:
+
+    st.markdown(
+        f"**{article.title}**"
+    )
+
+    st.caption(
+        article.link
+    )
+
+st.divider()
+
+st.subheader("🎯 Today's Focus")
+
+st.write("• Check the latest Manchester United news")
+st.write("• Read today's top headlines")
+st.write("• Continue building Lisa's Daily Pulse")
+st.write("• Learn one new AI skill")
+
+st.success(
+    "✅ Weather Loaded | ✅ Football Loaded | ✅ BBC Headlines Loaded"
+)
