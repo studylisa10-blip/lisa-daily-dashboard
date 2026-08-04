@@ -1,70 +1,62 @@
 import streamlit as st
 import requests
 import feedparser
+from datetime import datetime
+
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 
 st.set_page_config(
-    st.markdown("""
-<style>
-
-.stApp {
-    background: linear-gradient(135deg, #0b1120, #111827);
-}
-
-.big-title {
-    font-size: 52px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 0px;
-}
-
-.sub-title {
-    color: #94A3B8;
-    font-size: 18px;
-}
-
-.card {
-    background: linear-gradient(
-        135deg,
-        rgba(30,41,59,0.95),
-        rgba(15,23,42,0.95)
-    );
-    padding: 25px;
-    border-radius: 20px;
-    border: 1px solid #334155;
-    margin-bottom: 20px;
-}
-
-.card-title {
-    color: #38BDF8;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.card-value {
-    color: white;
-    font-size: 34px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.news-card {
-    background: #111827;
-    padding: 15px;
-    border-radius: 12px;
-    border-left: 5px solid #38BDF8;
-    margin-bottom: 12px;
-}
-
-</style>
-""", unsafe_allow_html=True)
     page_title="Lisa's Daily Pulse",
     page_icon="🚀",
     layout="wide"
 )
 
-# --------------------------
-# WEATHER
-# --------------------------
+# --------------------------------------------------
+# STYLING
+# --------------------------------------------------
+
+st.markdown("""
+<style>
+
+.stApp {
+    background-color: #0f172a;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+}
+
+.subtitle {
+    color: #94A3B8;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #334155;
+    margin-bottom: 15px;
+}
+
+.news-card {
+    background-color: #111827;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid #38BDF8;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# --------------------------------------------------
+# FUNCTIONS
+# --------------------------------------------------
 
 def get_weather():
 
@@ -79,26 +71,23 @@ def get_weather():
 
     return data["current"]["temperature_2m"]
 
-# --------------------------
-# MAN UNITED FIXTURE
-# --------------------------
 
-def get_mens_fixture():
+def get_fixture():
 
-    url = "https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133612"
+    url = (
+        "https://www.thesportsdb.com/api/v1/json/123/"
+        "eventsnext.php?id=133612"
+    )
 
     data = requests.get(url).json()
 
     fixtures = data.get("events", [])
 
-    if len(fixtures) > 0:
+    if fixtures:
         return fixtures[0]
 
     return None
 
-# --------------------------
-# BBC NEWS
-# --------------------------
 
 def get_headlines():
 
@@ -108,66 +97,97 @@ def get_headlines():
 
     return feed.entries[:5]
 
-# --------------------------
-# PAGE
-# --------------------------
+# --------------------------------------------------
+# HEADER
+# --------------------------------------------------
 
-st.title("🚀 Lisa's Daily Pulse")
+st.markdown(
+    '<div class="title">🚀 Lisa\'s Daily Pulse</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">Your personal morning newspaper</div>',
+    unsafe_allow_html=True
+)
+
+st.caption(
+    datetime.now().strftime("%A %d %B %Y")
+)
+
+# --------------------------------------------------
+# TOP CARDS
+# --------------------------------------------------
+
+weather = get_weather()
+fixture = get_fixture()
 
 col1, col2 = st.columns(2)
 
 with col1:
 
-    temp = get_weather()
-
-    st.metric(
-        label="🌦 Worthing Temperature",
-        value=f"{temp} °C"
-    )
+    st.markdown(f"""
+    <div class="card">
+        <h3>🌦 Worthing Weather</h3>
+        <h1>{weather}°C</h1>
+        <p>Live Open-Meteo weather</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
 
-    st.subheader("⚽ Manchester United Men")
-
-    fixture = get_mens_fixture()
-
     if fixture:
+
+        st.markdown(f"""
+        <div class="card">
+            <h3>⚽ Manchester United Men</h3>
+            <h2>
+            {fixture['strHomeTeam']} vs
+            {fixture['strAwayTeam']}
+            </h2>
+            <p>{fixture['dateEvent']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         fixture_text = (
             f"{fixture['strHomeTeam']} vs "
             f"{fixture['strAwayTeam']}"
         )
 
-        st.write(fixture_text)
-
-        st.write(
-            fixture["dateEvent"]
-        )
-
     else:
 
         fixture_text = "Fixture unavailable"
 
-        st.write(fixture_text)
+        st.markdown("""
+        <div class="card">
+            <h3>⚽ Manchester United Men</h3>
+            <p>No fixture found</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-st.divider()
+# --------------------------------------------------
+# BRIEFING
+# --------------------------------------------------
 
 st.subheader("☕ Morning Briefing")
 
 st.info(
     f"""
-Good morning Lisa.
+Welcome back Lisa.
 
-Current temperature in Worthing: {temp}°C
+The current temperature in Worthing is {weather}°C.
 
-Next Manchester United fixture:
+Your next Manchester United fixture is:
+
 {fixture_text}
 
-Top headlines are below.
+Below are today's BBC headlines.
 """
 )
 
-st.divider()
+# --------------------------------------------------
+# NEWS
+# --------------------------------------------------
 
 st.subheader("📰 BBC Headlines")
 
@@ -175,23 +195,28 @@ headlines = get_headlines()
 
 for article in headlines:
 
-    st.markdown(
-        f"**{article.title}**"
-    )
+    st.markdown(f"""
+    <div class="news-card">
+        <b>{article.title}</b>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.caption(
-        article.link
-    )
-
-st.divider()
+# --------------------------------------------------
+# TODAY
+# --------------------------------------------------
 
 st.subheader("🎯 Today's Focus")
 
-st.write("• Check the latest Manchester United news")
-st.write("• Read today's top headlines")
-st.write("• Continue building Lisa's Daily Pulse")
-st.write("• Learn one new AI skill")
+st.write("• Check the latest headlines")
+st.write("• Keep building Lisa's Daily Pulse")
+st.write("• Add Manchester United Women fixtures")
+st.write("• Add AI news")
+st.write("• Make the dashboard even cooler")
+
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
 
 st.success(
-    "✅ Weather Loaded | ✅ Football Loaded | ✅ BBC Headlines Loaded"
+    "✅ Weather | ✅ Football | ✅ BBC News"
 )
