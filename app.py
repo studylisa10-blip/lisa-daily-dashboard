@@ -111,9 +111,13 @@ def get_headlines():
 
     try:
 
-        feed = feedparser.parse(
-            "https://feeds.bbci.co.uk/news/rss.xml"
-        )
+        ```python
+7
+feed = feedparser.parse(
+8
+"https://feeds.bbci.co.uk/news/rss.xml"
+9
+)
 
         return feed.entries[:5]
 
@@ -195,42 +199,42 @@ if page == "Home":
         current_uk_date()
     )
 
-col1, col2, col3, col4 = st.columns(4)
-`
+    col1, col2, col3, col4 = st.columns(4)
 
-with col1:
+    with col1:
 
-    st.metric(
-        "🌦 Worthing",
-        weather
-    )
+        st.metric(
+            "🌦 Worthing",
+            weather
+        )
 
-with col2:
+    with col2:
 
-    st.metric(
-        "🌦 Salisbury",
-        "22°C"
-    )
+        st.metric(
+            "🌦 Salisbury",
+            "22°C"
+        )
 
-with col3:
+    with col3:
 
-    show_fixture_card(
-        "⚽ Manchester United Men",
-        next_mens_fixture
-    )
+        show_fixture_card(
+            "⚽ Manchester United Men",
+            next_mens_fixture
+        )
 
-with col4:
+    with col4:
 
-    show_fixture_card(
-        "⚽ Manchester United Women",
-        next_womens_fixture
-    )
+        show_fixture_card(
+            "⚽ Manchester United Women",
+            next_womens_fixture
+        )
 
     st.divider()
 
     st.subheader(
         "☕ Morning Briefing"
     )
+
 
     st.info(
         f"""
